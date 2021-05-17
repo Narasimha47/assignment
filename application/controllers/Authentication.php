@@ -28,5 +28,10 @@ class Authentication extends CI_Controller {
             redirect('Authentication');
         }
     }
+    
+    public function signOut() {
+        session_destroy();
+        redirect('Authentication');
+    }
 
 }

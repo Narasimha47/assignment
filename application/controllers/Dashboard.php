@@ -12,21 +12,93 @@ class Dashboard extends CI_Controller {
     }
 
     public function index() {
-        $this->load->view('includes/header');
-        $this->load->view('dashboard');
-        $this->load->view('includes/footer');
+        
+        $this->addCart();
     }
     
     public function cartList() {
         $role_id = $_SESSION['user_data']->role_id;
+        $user_id = 0;
         if($role_id != 1){
-            redirect('Authentication');
+            $user_id = $_SESSION['user_data']->user_id;
         }
         $this->load->model('Dashboardmodel');
-        $data['user_list'] = $this->Dashboardmodel->getUsers();
+        $data['cart_list'] = $this->Dashboardmodel->getCartList($user_id);
         $this->load->view('includes/header');
-        $this->load->view('users',$data);
+        $this->load->view('carts',$data);
         $this->load->view('includes/footer');
+    }
+    
+    public function addCart() {
+        $role_id = $_SESSION['user_data']->role_id;
+        $this->load->model('Dashboardmodel');
+        if($this->input->post('submit')){
+            $str_make_id =  $this->input->post('make_id');
+            $int_status = $this->input->post('status');
+            if($str_make_id > 0){
+                $arr_cart = array(
+                    'user_id' => $_SESSION['user_data']->user_id,
+                    'make_id' => $str_make_id,
+                    'status' => $int_status,
+                    'created_by' => $_SESSION['user_data']->user_id
+                );
+                $ok = $this->Dashboardmodel->simpleInsert('cart',$arr_cart);
+                if($ok > 0){
+                    redirect('Dashboard/cartList');
+                }
+            }
+        }
+        $data['make_list'] = $this->Dashboardmodel->getMakes();
+        $this->load->view('includes/header');
+        $this->load->view('add_cart',$data);
+        $this->load->view('includes/footer');
+    }
+    
+    public function editCart($cart_id) {
+        $this->load->model('Dashboardmodel');
+        $role_id = $_SESSION['user_data']->role_id;
+        $user_id = 0;
+        if($role_id != 1){
+            $user_id = $_SESSION['user_data']->user_id;
+        }
+        if($this->input->post('submit')){
+            $str_make_id =  $this->input->post('make_id');
+            $int_status = $this->input->post('status');
+            if($str_make_id > 0){
+                $arr_cart = array(
+                    'user_id' => $_SESSION['user_data']->user_id,
+                    'make_id' => $str_make_id,
+                    'status' => $int_status,
+                    'modified_by' => $_SESSION['user_data']->user_id,
+                    'modified_on' => date('Y-m-d H:m:i')
+                );
+                $arr_where = array(
+                    'cart_id ' => $cart_id
+                );
+                $ok = $this->Dashboardmodel->simpleUpdate('cart',$arr_cart,$arr_where);
+                if($ok > 0){
+                    redirect('Dashboard/cartList');
+                }
+            }
+        }
+        $data['make_list'] = $this->Dashboardmodel->getMakes();
+        $data['cart_data'] = $this->Dashboardmodel->getCartList($user_id,$cart_id);
+        $this->load->view('includes/header');
+        $this->load->view('add_cart',$data);
+        $this->load->view('includes/footer');
+    }
+    
+    public function deleteCart($cart_id) {
+        $this->load->model('Dashboardmodel');
+        if($cart_id > 0){
+                $arr_where = array(
+                    'cart_id ' => $cart_id
+                );
+                $ok = $this->Dashboardmodel->simpleDelete('cart',$arr_where);
+                if($ok > 0){
+                    redirect('Dashboard/cartList');
+                }
+        }
     }
     
     public function users() {
@@ -309,6 +381,15 @@ class Dashboard extends CI_Controller {
                     redirect('Dashboard/makes');
                 }
         }
+    }
+    
+    public function getAjaxCallDetails() {
+        $this->load->model('Dashboardmodel');
+        $make_id = ($this->input->post('make_id')) ? $this->input->post('make_id') : 0;
+        if($make_id > 0){
+            $make_list = $this->Dashboardmodel->getAjaxCallDetails($make_id);
+        }
+        echo json_encode($make_list);
     }
 
 }
