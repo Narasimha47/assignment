@@ -36,7 +36,7 @@
 
             <ul class="navbar-nav px-3">
                 <li class="nav-item text-nowrap">
-                    <a class="nav-link" href="#">Sign out</a>
+                    <a class="nav-link" href="<?= base_url() ?>index.php/Authentication/signOut">Sign out</a>
                 </li>
             </ul>
         </header>
@@ -59,6 +59,7 @@
                                     Cart
                                 </a>
                             </li>
+                            <?php if($_SESSION['user_data']->role_id == 1){ ?>
                             <li class="nav-item">
                                 <a class="nav-link" href="<?= base_url() ?>index.php/dashboard/makes">
                                     <span data-feather="shopping-cart"></span>
@@ -83,6 +84,7 @@
                                     Users
                                 </a>
                             </li>
+                            <?php } ?>
                         </ul>
                     </div>
                 </nav>
